@@ -6,5 +6,5 @@ def index(request):
     return render(request, 'posts/index.html')
 
 
-def groups_posts(request, slug):
-    return HttpResponse(f'Страница с группами {slug}')
+def groups_posts(request):
+    return render(request, 'posts/group_list.html')
