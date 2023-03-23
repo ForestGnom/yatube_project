@@ -24,8 +24,8 @@ class Post(models.Model):
 
 
 class Group(models.Model):
-    title = models.CharField(max_length=100, verbose_name='Название')
-    slug = models.SlugField(max_length=100, verbose_name='Слаг')
+    title = models.CharField(max_length=200, verbose_name='Название')
+    slug = models.SlugField(max_length=200, verbose_name='Слаг', unique=True)
     description = models.TextField(verbose_name='Описание')
 
     def __str__(self):
