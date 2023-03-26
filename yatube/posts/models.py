@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 
 
 User = get_user_model()
+CHARACTERS = 15
 
 
 class Post(models.Model):
@@ -20,7 +21,10 @@ class Post(models.Model):
     class Meta:
         verbose_name = 'Пост'
         verbose_name_plural = 'Посты'
-        ordering = ['-pub_date', 'author']
+        ordering = ('-pub_date', 'author')
+
+    def __str__(self):
+        return self.text[:CHARACTERS]
 
 
 class Group(models.Model):
