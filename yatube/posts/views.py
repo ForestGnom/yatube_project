@@ -1,5 +1,4 @@
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 
@@ -53,12 +52,10 @@ def profile(request, username):
 def post_detail(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
 
-    title = post.text
     count_posts = post.author.posts.count()
 
     context = {
         'post': post,
-        'title': title,
         'count_post': count_posts,
     }
 
