@@ -16,7 +16,13 @@ class Post(models.Model):
                               blank=True,
                               null=True,
                               on_delete=models.SET_NULL,
-                              related_name='posts', verbose_name='Сообщество')
+                              related_name='posts',
+                              verbose_name='Сообщество')
+    image = models.ImageField(
+        'Картинка',
+        upload_to='posts/',
+        blank=True
+    )
 
     class Meta:
         verbose_name = 'Пост'

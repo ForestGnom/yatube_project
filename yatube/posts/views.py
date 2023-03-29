@@ -7,9 +7,6 @@ from .models import Group, Post, User
 from .utils import page
 
 
-NUM_OF_PAGES = 10
-
-
 def index(request):
 
     post_list = Post.objects.select_related()
@@ -64,7 +61,10 @@ def post_detail(request, post_id):
 
 @login_required
 def post_create(request):
-    form = PostForm(request.POST or None)
+    form = PostForm(
+        request.POST or None,
+        files=request.FILES or None
+    )
     if form.is_valid():
         post = form.save(commit=False)
         post.author = request.user
@@ -75,24 +75,23 @@ def post_create(request):
 
 @login_required
 def post_edit(request, post_id):
-    is_edit = True
-    post = get_object_or_404(Post, id=post_id)
-
+    post = get_object_or_404(Post, pk=post_id)
     if post.author != request.user:
-        return redirect('posts:post_detail', post_id)
+        return redirect('posts:post_detail', post_id=post_id)
 
-    if request.method == 'POST':
-        form = PostForm(request.POST, instance=post)
-        if form.is_valid():
-            form.save()
-            return redirect('posts:post_detail', post_id)
-        else:
-            context = {'form': form}
-            return render(request, 'posts/create_post.html', context)
-    else:
-        form = PostForm(instance=post)
-
-    context = {'form': form,
-               'is_edit': is_edit,
-               'post_id': post_id}
+    form = PostForm(
+        request.POST or None,
+        files=request.FILES or None,
+        instance=post
+    )
+    if form.is_valid():
+        form.save()
+        return redirect('posts:post_detail', post_id=post_id)
+    context = {
+        'post': post,
+        'form': form,
+        'is_edit': True,
+    }
     return render(request, 'posts/create_post.html', context)
+
+
