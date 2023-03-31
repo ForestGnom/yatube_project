@@ -7,7 +7,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 
-from ..models import Post, Group
+from ..models import Post, Group, Comment
 
 
 User = get_user_model()
@@ -150,3 +150,25 @@ class PostCreateFormTests(TestCase):
             image='posts/small.gif',
             ).exists()
         )
+
+    def test_comment_post_guest_user(self):
+        """Неавторизованный пользователь не может комментировать посты"""
+        post = Post.objects.create(
+            author=self.user,
+            text='Тестовый пост',
+            group=self.group,
+        )
+        comment_count = Comment.objects.count()
+        form_data = {
+            'text': 'Текст комментария от неавторизованного пользователя',
+        }
+        response = self.guest_client.get(f'/posts/{post.id}/comment/', follow=True)
+        self.guest_client.post(
+            reverse('posts:add_comment', kwargs={'post_id': post.id}),
+            data=form_data,
+            follow=True,
+        )
+        self.assertFalse(Comment.objects.filter(
+            text=form_data['text']).exists())
+        self.assertRedirects(response, f'/auth/login/?next=/posts/{post.id}/comment/')
+        self.assertNotEqual(Comment.objects.count(), comment_count + 1)

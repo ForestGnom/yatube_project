@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 
 from .forms import PostForm, CommentForm
-from .models import Group, Post, User, Comment
+from .models import Group, Post, User
 from .utils import page
 
 
@@ -50,8 +50,8 @@ def post_detail(request, post_id):
 
     count_posts = post.author.posts.count()
 
-    form = CommentForm(request.POST or None)
-    comments = Comment.objects.select_related()
+    form = CommentForm()
+    comments = post.comments.select_related()
 
     context = {
         'post': post,

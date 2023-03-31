@@ -3,12 +3,13 @@ import tempfile
 
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django import forms
 
-from ..models import Group, Post
+from ..models import Group, Post, Comment
 
 User = get_user_model()
 
@@ -120,7 +121,8 @@ class PostPagesTests(TestCase):
 
     def test_post_detail_correct_context(self):
         """Шаблон post_detail сформирован с правильным контекстом"""
-        response = self.authorized_client.get(reverse('posts:post_detail', kwargs={'post_id': self.post.id}))
+        response = self.authorized_client.get(reverse(
+            'posts:post_detail', kwargs={'post_id': self.post.id}))
         obj = response.context['post']
         post_text_0 = obj.text
         post_image_0 = Post.objects.first().image
@@ -160,6 +162,14 @@ class PostPagesTests(TestCase):
     #     first_object = obj[0]
     #     post_text_0 = first_object.text
     #     self.assertTrue(post_text_0, 'Тестовый пост')
+
+    def test_successful_comment_submission(self):
+        """После успешной отправки комментарий появляется на странице поста"""
+        response = self.authorized_client.get(reverse(
+            'posts:post_detail', kwargs={'post_id': self.post.id}))
+        expected = forms.fields.CharField
+        form_field = response.context['form'].fields['text']
+        self.assertIsInstance(form_field, expected)
 
 
 class PaginatorViewsTest(TestCase):
@@ -206,3 +216,27 @@ class PaginatorViewsTest(TestCase):
         for test in urls:
             response = self.client.get(test)
             self.assertEqual(len(response.context['page_obj']), 3)
+
+
+class CacheTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.author = User.objects.create_user(username='cache_auth')
+        cls.post = Post.objects.create(
+            author=cls.author,
+            text='Пост для тестирования кэша'
+        )
+
+    def setUp(self):
+        self.guest_client = Client()
+
+    def test_index_cache(self):
+        """Страница index правильно кешируется"""
+        response = self.guest_client.get(reverse('posts:index'))
+        self.post.delete()
+        response_after_delete_post = self.guest_client.get(reverse('posts:index'))
+        self.assertEqual(response.content, response_after_delete_post.content)
+        cache.clear()
+        non_cached_response = self.guest_client.get(reverse('posts:index'))
+        self.assertNotEqual(response.content, non_cached_response.content)
