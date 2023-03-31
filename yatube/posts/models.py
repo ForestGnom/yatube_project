@@ -45,3 +45,23 @@ class Group(models.Model):
         verbose_name = 'Сообщество'
         verbose_name_plural = 'Сообщества'
         ordering = ['title']
+
+
+class Comment(models.Model):
+    post = models.ForeignKey('Post',
+                             on_delete=models.CASCADE,
+                             related_name='comments',
+                             verbose_name='Пост',
+                             help_text='ссылка на пост, к которому будет оставлен комментарий')
+    author = models.ForeignKey(User,
+                               on_delete=models.CASCADE,
+                               related_name='comments',
+                               verbose_name='Автор комментария')
+    text = models.TextField(verbose_name='Текст комментария',
+                            help_text='Текст вашего комментария')
+    created = models.DateTimeField(auto_now_add=True, verbose_name='Дата публикации комментария')
+
+    class Meta:
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
+        ordering = ('-created', 'author')

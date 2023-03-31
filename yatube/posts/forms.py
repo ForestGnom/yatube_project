@@ -2,7 +2,7 @@ from django.utils.translation import gettext_lazy as _
 
 from django import forms
 
-from .models import Post
+from .models import Post, Comment
 
 
 class PostForm(forms.ModelForm):
@@ -23,4 +23,14 @@ class PostForm(forms.ModelForm):
         widgets = {
             'text': forms.Textarea(attrs={'cols': 40, 'rows': 10, 'class': 'form-control', 'id': 'id_text'}),
             'group': forms.Select(attrs={'class': 'form-control', 'id': 'id_group'})
+        }
+
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ('post', 'author', 'text')
+
+        widgets = {
+            'text': forms.Textarea(attrs={'cols': 40, 'rows': 10, 'class': 'form-control', 'id': 'id_text'}),
         }
