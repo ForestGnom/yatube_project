@@ -9,7 +9,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django import forms
 
-from ..models import Group, Post, Comment
+from ..models import Group, Post, Follow
 
 User = get_user_model()
 
@@ -240,3 +240,36 @@ class CacheTest(TestCase):
         cache.clear()
         non_cached_response = self.guest_client.get(reverse('posts:index'))
         self.assertNotEqual(response.content, non_cached_response.content)
+
+
+class FollowTest(TestCase):
+    def setUp(self):
+        self.user_follower = User.objects.create_user(username='follower')
+        self.user_following = User.objects.create_user(username='following')
+        self.client_follower = Client()
+        self.client_following = Client()
+        self.client_follower.force_login(self.user_follower)
+        self.client_following.force_login(self.user_following)
+        self.post = Post.objects.create(text='Пост для проверки подписки',
+                                        author=self.user_following)
+
+    def test_follow(self):
+        self.client_follower.get(reverse(
+            'posts:profile_follow', kwargs={'username': self.user_following.username}))
+        self.assertEqual(Follow.objects.count(), 1)
+
+    def test_unfollow(self):
+        self.client_follower.get(reverse(
+            'posts:profile_follow', kwargs={'username': self.user_following.username}))
+        self.client_follower.get(reverse(
+            'posts:profile_unfollow', kwargs={'username': self.user_following.username}))
+        self.assertEqual(Follow.objects.count(), 0)
+
+    def test_subscription_feed(self):
+        Follow.objects.create(user=self.user_follower,
+                              author=self.user_following)
+        response = self.client_follower.get(reverse('posts:follow_index'))
+        post_test_0 = response.context['page_obj'][0].text
+        self.assertEqual(post_test_0, self.post.text)
+        response = self.client_following.get(reverse('posts:follow_index'))
+        self.assertNotEqual(response.context, self.post.text)

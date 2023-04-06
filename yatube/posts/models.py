@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 
-
 User = get_user_model()
 CHARACTERS = 15
 
@@ -44,7 +43,7 @@ class Group(models.Model):
     class Meta:
         verbose_name = 'Сообщество'
         verbose_name_plural = 'Сообщества'
-        ordering = ['title']
+        ordering = ('title',)
 
 
 class Comment(models.Model):
@@ -80,3 +79,7 @@ class Follow(models.Model):
     class Meta:
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
+        constraints = (
+            models.UniqueConstraint(
+                fields=('user', 'author'), name='Уникальная подписка'),
+        )

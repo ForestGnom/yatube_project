@@ -8,7 +8,7 @@ from .utils import page
 
 def index(request):
 
-    post_list = Post.objects.select_related()
+    post_list = Post.objects.all()
 
     context = {
         'page_obj': page(request, post_list),
